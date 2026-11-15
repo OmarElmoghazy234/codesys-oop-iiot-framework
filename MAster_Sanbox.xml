@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP22 Patch 4" creationDateTime="2026-11-15T16:12:28.0456599" />
-  <contentHeader name="MAster_Sanbox.project" modificationDateTime="1601-01-01T01:00:00">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP22 Patch 4" creationDateTime="2026-11-15T19:04:08.2711336" />
+  <contentHeader name="MAster_Sanbox.project" modificationDateTime="2026-11-15T19:03:28.4000305">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -21,65 +21,178 @@
   </contentHeader>
   <types>
     <dataTypes />
-    <pous>
-      <pou name="PLC_PRG" pouType="program">
-        <interface>
-          <localVars>
-            <variable name="fbTimer">
-              <type>
-                <derived name="TON" />
-              </type>
+    <pous />
+  </types>
+  <instances>
+    <configurations>
+      <configuration name="Device">
+        <resource name="Application">
+          <task name="MainTask" interval="PT0.02S" priority="1">
+            <pouInstance name="PLC_PRG" typeName="">
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 1-second pulse generator</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml" />
               </documentation>
-            </variable>
-            <variable name="fbLogTimer">
-              <type>
-                <derived name="TON" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 60-second log pulse generator</xhtml>
-              </documentation>
-            </variable>
-            <variable name="bResetUptime">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Manual flag to reset stats if needed</xhtml>
-              </documentation>
-            </variable>
-          </localVars>
-          <localVars retain="true" persistent="true">
-            <variable name="udiTotalSeconds">
-              <type>
-                <UDINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cumulative uptime in seconds</xhtml>
-              </documentation>
-            </variable>
-            <variable name="udiTotalMinutes">
-              <type>
-                <UDINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cumulative uptime in minutes</xhtml>
-              </documentation>
-            </variable>
-            <variable name="udiSaveCount">
-              <type>
-                <UDINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Tracks how many times a log entry was saved</xhtml>
-              </documentation>
-            </variable>
-          </localVars>
-        </interface>
-        <body>
-          <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1. Generate a 1-Second Heartbeat Pulse
+            </pouInstance>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
+                <TaskSettings KindOfTask="Cyclic" Interval="t#20ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+                  <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
+                </TaskSettings>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                <ObjectId>ebe6ecee-f4da-4fea-8f52-5bae6f4266f2</ObjectId>
+              </data>
+            </addData>
+          </task>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
+              <Interface name="I_Actuator" ObjectId="d8daac6d-e840-4e8f-9e74-d5cd847ebe58">
+                <Methods>
+                  <Method name="Start" ObjectId="3e14f405-3bd3-44e7-a3b3-9191b79fd564">
+                    <interface>
+                      <returnType>
+                        <BOOL />
+                      </returnType>
+                    </interface>
+                    <addData />
+                  </Method>
+                  <Method name="Stop" ObjectId="886c9ddb-de11-41ee-ac4c-96f611c3b8d1">
+                    <interface>
+                      <returnType>
+                        <BOOL />
+                      </returnType>
+                    </interface>
+                    <addData />
+                  </Method>
+                  <Method name="CyclicUpdate" ObjectId="6852db0a-bb0f-485c-810f-67db50b50bb7">
+                    <interface />
+                    <addData />
+                  </Method>
+                </Methods>
+                <addData />
+              </Interface>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+              <pou name="PLC_PRG" pouType="program">
+                <interface>
+                  <localVars>
+                    <variable name="fbConveyorMotor">
+                      <type>
+                        <derived name="FB_Motor" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Concrete instances</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="fbCoolingPump">
+                      <type>
+                        <derived name="FB_Motor" />
+                      </type>
+                    </variable>
+                    <variable name="fbMainValve">
+                      <type>
+                        <derived name="FB_Valve" />
+                      </type>
+                    </variable>
+                    <variable name="aActuators">
+                      <type>
+                        <array>
+                          <dimension lower="1" upper="3" />
+                          <baseType>
+                            <derived name="I_Actuator" />
+                          </baseType>
+                        </array>
+                      </type>
+                      <initialValue>
+                        <arrayValue>
+                          <value>
+                            <simpleValue value="fbConveyorMotor" />
+                          </value>
+                          <value>
+                            <simpleValue value="fbCoolingPump" />
+                          </value>
+                          <value>
+                            <simpleValue value="fbMainValve" />
+                          </value>
+                        </arrayValue>
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Polymorphic Interface Array</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bStartAll">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Master Control Triggers</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bStopAll">
+                      <type>
+                        <BOOL />
+                      </type>
+                    </variable>
+                    <variable name="i">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="fbTimer">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> 1-second pulse generator</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="fbLogTimer">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> 60-second log pulse generator</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bResetUptime">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Manual flag to reset stats if needed</xhtml>
+                      </documentation>
+                    </variable>
+                  </localVars>
+                  <localVars retain="true" persistent="true">
+                    <variable name="udiTotalSeconds">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cumulative uptime in seconds</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="udiTotalMinutes">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cumulative uptime in minutes</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="udiSaveCount">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Tracks how many times a log entry was saved</xhtml>
+                      </documentation>
+                    </variable>
+                  </localVars>
+                </interface>
+                <body>
+                  <ST>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1. Generate a 1-Second Heartbeat Pulse
 fbTimer(IN := NOT fbTimer.Q, PT := T#1S);
 
 IF fbTimer.Q THEN
@@ -100,24 +213,315 @@ IF bResetUptime THEN
     udiTotalMinutes := 0;
     udiSaveCount    := 0;
     bResetUptime    := FALSE;
-END_IF</xhtml>
-          </ST>
-        </body>
+END_IF
+
+
+// Master Start Command across completely different device types
+IF bStartAll THEN
+    FOR i := 1 TO 3 DO
+        aActuators[i].Start();
+    END_FOR
+    bStartAll := FALSE;
+END_IF
+
+// Master Stop Command
+IF bStopAll THEN
+    FOR i := 1 TO 3 DO
+        aActuators[i].Stop();
+    END_FOR
+    bStopAll := FALSE;
+END_IF
+
+// Cyclic execution for all registered actuators
+FOR i := 1 TO 3 DO
+    aActuators[i].CyclicUpdate();
+END_FOR</xhtml>
+                  </ST>
+                </body>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>a390f041-7feb-415e-aa6f-2d5924106163</ObjectId>
+                  </data>
+                </addData>
+              </pou>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+              <pou name="FB_ActuatorBase" pouType="functionBlock">
+                <interface>
+                  <localVars>
+                    <variable name="_bRunning">
+                      <type>
+                        <BOOL />
+                      </type>
+                    </variable>
+                    <variable name="_bFault">
+                      <type>
+                        <BOOL />
+                      </type>
+                    </variable>
+                    <variable name="_fbRunTimer">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                    </variable>
+                  </localVars>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+                      <Inheritance>
+                        <Implements>I_Actuator</Implements>
+                      </Inheritance>
+                    </data>
+                  </addData>
+                </interface>
+                <body>
+                  <ST>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+                  </ST>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/cfc" handleUnknown="implementation">
+                      <CFC />
+                    </data>
+                  </addData>
+                </body>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                    <Method name="Start" ObjectId="2b7a2cfa-51f6-456f-a161-a65ccbdaf7c0">
+                      <interface>
+                        <returnType>
+                          <BOOL />
+                        </returnType>
+                      </interface>
+                      <body>
+                        <ST>
+                          <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT _bFault THEN
+    _bRunning := TRUE;
+    Start := TRUE;
+ELSE
+    Start := FALSE;
+END_IF
+</xhtml>
+                        </ST>
+                      </body>
+                      <addData />
+                    </Method>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                    <Method name="Stop" ObjectId="6decae82-6ce1-4b30-88e2-ca8d7d4117e2">
+                      <interface>
+                        <returnType>
+                          <BOOL />
+                        </returnType>
+                      </interface>
+                      <body>
+                        <ST>
+                          <xhtml xmlns="http://www.w3.org/1999/xhtml">_bRunning := FALSE;
+Stop := TRUE;
+</xhtml>
+                        </ST>
+                      </body>
+                      <addData />
+                    </Method>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                    <Method name="CyclicUpdate" ObjectId="ab048f83-1987-4c7b-a82a-0e12db845b0c">
+                      <interface />
+                      <body>
+                        <ST>
+                          <xhtml xmlns="http://www.w3.org/1999/xhtml">// Tracks continuous run duration for all derived devices
+_fbRunTimer(IN := _bRunning, PT := T#1H);
+</xhtml>
+                        </ST>
+                      </body>
+                      <addData />
+                    </Method>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>ffd7c006-5d88-42af-a17b-a19f9f4dc498</ObjectId>
+                  </data>
+                </addData>
+              </pou>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+              <pou name="FB_Motor" pouType="functionBlock">
+                <interface>
+                  <localVars>
+                    <variable name="_rTargetSpeed">
+                      <type>
+                        <REAL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="1500.0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="_rActualSpeed">
+                      <type>
+                        <REAL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0.0" />
+                      </initialValue>
+                    </variable>
+                  </localVars>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+                      <Inheritance>
+                        <Extends>FB_ActuatorBase</Extends>
+                      </Inheritance>
+                    </data>
+                  </addData>
+                </interface>
+                <body>
+                  <ST>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+                  </ST>
+                </body>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                    <Method name="CyclicUpdate" ObjectId="e1123608-419c-42ee-b611-5af4fed4653e">
+                      <interface />
+                      <body>
+                        <ST>
+                          <xhtml xmlns="http://www.w3.org/1999/xhtml">// Execute the parent timer logic first
+SUPER^.CyclicUpdate();
+
+// Add motor-specific speed ramping
+IF _bRunning AND (_rActualSpeed &lt; _rTargetSpeed) THEN
+    _rActualSpeed := _rActualSpeed + 25.0;
+ELSIF NOT _bRunning AND (_rActualSpeed &gt; 0.0) THEN
+    _rActualSpeed := _rActualSpeed - 50.0;
+END_IF
+</xhtml>
+                        </ST>
+                      </body>
+                      <addData />
+                    </Method>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>00c455cf-b9b2-4f4c-aefe-2c6d61fff2fe</ObjectId>
+                  </data>
+                </addData>
+              </pou>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+              <pou name="FB_Valve" pouType="functionBlock">
+                <interface>
+                  <localVars>
+                    <variable name="_bIsOpen">
+                      <type>
+                        <BOOL />
+                      </type>
+                    </variable>
+                  </localVars>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+                      <Inheritance>
+                        <Extends>FB_ActuatorBase</Extends>
+                      </Inheritance>
+                    </data>
+                  </addData>
+                </interface>
+                <body>
+                  <ST>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+                  </ST>
+                </body>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                    <Method name="CyclicUpdate" ObjectId="ba17fac5-cd98-49da-8b32-5305cd468e24">
+                      <interface />
+                      <body>
+                        <ST>
+                          <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^.CyclicUpdate();
+_bIsOpen := _bRunning;</xhtml>
+                        </ST>
+                      </body>
+                      <addData />
+                    </Method>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>294c5a7f-11cd-4c93-83c3-af8e433f79f1</ObjectId>
+                  </data>
+                </addData>
+              </pou>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
+              <Libraries>
+                <Library Name="#IoStandard" Namespace="IoStandard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="true" DefaultResolution="IoStandard, 3.5.22.0 (System)" />
+                <Library Name="#3SLicense" Namespace="_3S_LICENSE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="3SLicense, 0.0.0.0 (CODESYS)" ResolverGuid="97c3b452-d9fa-4ac2-9d0c-3d420aa6d95b" />
+                <Library Name="#CAA Device Diagnosis" Namespace="DED" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="CAA Device Diagnosis, 3.5.22.0 (CAA Technical Workgroup)" />
+                <Library Name="#Standard" Namespace="Standard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Standard, * (System)" />
+                <Library Name="#BreakpointLogging" Namespace="BPLog" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="Breakpoint Logging Functions, * (3S - Smart Software Solutions GmbH)" />
+                <PlaceholderRedirections>
+                  <PlaceholderRedirection Placeholder="Standard" Redirection="Standard, 3.5.22.0 (System)" />
+                </PlaceholderRedirections>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>9c227055-023b-460c-a340-488ebaf000f5</ObjectId>
+                  </data>
+                </addData>
+              </Libraries>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+              <ObjectId>75664f62-aabc-4709-9fa8-15f4ffab8d78</ObjectId>
+            </data>
+          </addData>
+        </resource>
         <addData>
+          <data name="Device" handleUnknown="discard">
+            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
+              <DeviceType>
+                <DeviceIdentification>
+                  <Type>4096</Type>
+                  <Id>0000 0004</Id>
+                  <Version>3.5.22.40</Version>
+                </DeviceIdentification>
+                <Connector moduleType="256" interface="Common.PCI" connectorId="0">
+                  <HostParameterSet />
+                </Connector>
+                <Connector moduleType="769" interface="SafetyInterface" connectorId="1">
+                  <HostParameterSet />
+                </Connector>
+                <DeviceParameterSet />
+                <DriverInfo />
+              </DeviceType>
+            </Device>
+          </data>
+          <data name="configurations" handleUnknown="discard">
+            <configurations />
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>a390f041-7feb-415e-aa6f-2d5924106163</ObjectId>
+            <ObjectId>dc77d4ee-e912-45ce-8a4e-5c979236fa14</ObjectId>
           </data>
         </addData>
-      </pou>
-    </pous>
-  </types>
-  <instances>
-    <configurations />
+      </configuration>
+    </configurations>
   </instances>
   <addData>
     <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
       <ProjectStructure>
-        <Object Name="PLC_PRG" ObjectId="a390f041-7feb-415e-aa6f-2d5924106163" />
+        <Object Name="Device" ObjectId="dc77d4ee-e912-45ce-8a4e-5c979236fa14">
+          <Object Name="Application" ObjectId="75664f62-aabc-4709-9fa8-15f4ffab8d78">
+            <Object Name="Library Manager" ObjectId="9c227055-023b-460c-a340-488ebaf000f5" />
+            <Object Name="PLC_PRG" ObjectId="a390f041-7feb-415e-aa6f-2d5924106163" />
+            <Object Name="MainTask" ObjectId="ebe6ecee-f4da-4fea-8f52-5bae6f4266f2" />
+            <Object Name="I_Actuator" ObjectId="d8daac6d-e840-4e8f-9e74-d5cd847ebe58">
+              <Object Name="Start" ObjectId="3e14f405-3bd3-44e7-a3b3-9191b79fd564" />
+              <Object Name="Stop" ObjectId="886c9ddb-de11-41ee-ac4c-96f611c3b8d1" />
+              <Object Name="CyclicUpdate" ObjectId="6852db0a-bb0f-485c-810f-67db50b50bb7" />
+            </Object>
+            <Object Name="FB_ActuatorBase" ObjectId="ffd7c006-5d88-42af-a17b-a19f9f4dc498">
+              <Object Name="Start" ObjectId="2b7a2cfa-51f6-456f-a161-a65ccbdaf7c0" />
+              <Object Name="Stop" ObjectId="6decae82-6ce1-4b30-88e2-ca8d7d4117e2" />
+              <Object Name="CyclicUpdate" ObjectId="ab048f83-1987-4c7b-a82a-0e12db845b0c" />
+            </Object>
+            <Object Name="FB_Motor" ObjectId="00c455cf-b9b2-4f4c-aefe-2c6d61fff2fe">
+              <Object Name="CyclicUpdate" ObjectId="e1123608-419c-42ee-b611-5af4fed4653e" />
+            </Object>
+            <Object Name="FB_Valve" ObjectId="294c5a7f-11cd-4c93-83c3-af8e433f79f1">
+              <Object Name="CyclicUpdate" ObjectId="ba17fac5-cd98-49da-8b32-5305cd468e24" />
+            </Object>
+          </Object>
+        </Object>
       </ProjectStructure>
     </data>
   </addData>
