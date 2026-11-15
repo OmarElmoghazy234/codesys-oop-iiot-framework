@@ -1,0 +1,7 @@
+# CODESYS temporary and binary cache files
+*.compileinfo
+*.bootinfo
+*.bootdata
+*.opt
+*.ret
+~*

@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP22 Patch 4" creationDateTime="2026-11-15T16:12:28.0456599" />
+  <contentHeader name="MAster_Sanbox.project" modificationDateTime="1601-01-01T01:00:00">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="PLC_PRG" pouType="program">
+        <interface>
+          <localVars>
+            <variable name="fbTimer">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 1-second pulse generator</xhtml>
+              </documentation>
+            </variable>
+            <variable name="fbLogTimer">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 60-second log pulse generator</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bResetUptime">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Manual flag to reset stats if needed</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <localVars retain="true" persistent="true">
+            <variable name="udiTotalSeconds">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cumulative uptime in seconds</xhtml>
+              </documentation>
+            </variable>
+            <variable name="udiTotalMinutes">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cumulative uptime in minutes</xhtml>
+              </documentation>
+            </variable>
+            <variable name="udiSaveCount">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Tracks how many times a log entry was saved</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1. Generate a 1-Second Heartbeat Pulse
+fbTimer(IN := NOT fbTimer.Q, PT := T#1S);
+
+IF fbTimer.Q THEN
+    udiTotalSeconds := udiTotalSeconds + 1;
+END_IF
+
+// 2. Generate a 60-Second Pulse for Persistent Logging
+fbLogTimer(IN := NOT fbLogTimer.Q, PT := T#60S);
+
+IF fbLogTimer.Q THEN
+    udiTotalMinutes := udiTotalMinutes + 1;
+    udiSaveCount    := udiSaveCount + 1; // Tracks every successful minute saved
+END_IF
+
+// 3. Optional Debug Reset Flag
+IF bResetUptime THEN
+    udiTotalSeconds := 0;
+    udiTotalMinutes := 0;
+    udiSaveCount    := 0;
+    bResetUptime    := FALSE;
+END_IF</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a390f041-7feb-415e-aa6f-2d5924106163</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Object Name="PLC_PRG" ObjectId="a390f041-7feb-415e-aa6f-2d5924106163" />
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>
