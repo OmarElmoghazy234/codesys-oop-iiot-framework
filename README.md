@@ -22,9 +22,17 @@ Unlike kernel-coupled real-time environments, this sandbox utilizes a decoupled 
 * **Method Overriding & `SUPER^` (`FB_Motor`, `FB_Valve`, & `FB_Heater`):** Extended the base class to implement device-specific behaviors—including speed ramping for motors, open/close position feedback for valves, and thermal heating/cooling dynamics for heaters—while preserving parent execution via `SUPER^.CyclicUpdate()`.
 * **Polymorphic Execution:** Bound four heterogeneous actuator instances (`fbConveyorMotor`, `fbCoolingPump`, `fbMainValve`, `fbTankHeater`) into a unified `ARRAY[1..4] OF I_Actuator` inside `PLC_PRG` to execute synchronized master start, stop, and fault-reset commands in a single scan loop.
 
+## ✅ Phase 3: Virtual Fieldbus Topologies — EtherCAT & PROFINET (Completed)
+
+* **Multi-Protocol Master Configuration:** Configured both an `EtherCAT_Master` and a `PN_Controller` (PROFINET IO Master) bound to the host network interface (`192.168.0.194`) with dedicated cyclic bus tasks.
+* **Virtual Slave Hardware & Process Mapping:** Integrated a Beckhoff `EP7041-3002` EtherCAT stepper output stage and a `CODESYS_PROFINET_Device` (`Output_8Bit`), mapping cyclic process data (`%QX4.0`, `%QW5`, `%QX8.0`) to a decoupled I/O exchange layer in `PLC_PRG`.
+* **Encapsulated Property Accessors:** Exposed read-only `IsRunning` and `ActualSpeed` properties on `FB_ActuatorBase` and `FB_Motor` to feed cyclic fieldbus frames without breaking OOP encapsulation.
+* **Fieldbus Fault Interlock:** Implemented a bus-health safety interlock (`bFieldbusFault`) that immediately commands a polymorphic emergency stop across all actuators upon simulated cable dropout.
+
+
 ## 🚀 Roadmap
 * [x] **Phase 1:** Decoupled Runtime Setup & Persistent Memory Architecture
 * [x] **Phase 2:** Advanced IEC 61131-3 OOP (Interfaces, Polymorphism, `SUPER^` Inheritance)
-* [ ] **Phase 3:** Virtual Fieldbus Topologies (EtherCAT & PROFINET)
+* [x] **Phase 3:** Virtual Fieldbus Topologies (EtherCAT & PROFINET)
 * [ ] **Phase 4:** WebVisu HMI & IT/OT Integration (OPC UA / MQTT JSON)
 * [ ] **Phase 5:** Containerized Linux Edge Deployment (Docker Control SL)
