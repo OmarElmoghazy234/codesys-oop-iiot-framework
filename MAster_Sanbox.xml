@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP22 Patch 4" creationDateTime="2026-11-21T10:26:28.9984615" />
-  <contentHeader name="MAster_Sanbox.project" modificationDateTime="2026-11-21T10:22:07.4011457">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP22 Patch 4" creationDateTime="2026-11-22T15:01:21.2798391" />
+  <contentHeader name="MAster_Sanbox.project" modificationDateTime="2026-11-22T14:50:50.9979746">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -82,6 +82,23 @@
               </data>
               <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                 <ObjectId>415adcd9-8c80-423b-9440-797d1768bb4f</ObjectId>
+              </data>
+            </addData>
+          </task>
+          <task name="VISU_TASK" interval="PT0.1S" priority="31">
+            <pouInstance name="VisuElems.Visu_Prg" typeName="">
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+              </documentation>
+            </pouInstance>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
+                <TaskSettings KindOfTask="Cyclic" Interval="100" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+                  <Watchdog Enabled="false" TimeUnit="ms" />
+                </TaskSettings>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                <ObjectId>b9fa7893-7ef9-4dc8-8c77-c2e179e61877</ObjectId>
               </data>
             </addData>
           </task>
@@ -281,6 +298,30 @@
                         <xhtml xmlns="http://www.w3.org/1999/xhtml"> Sandbox switch to test fieldbus cable unplugging</xhtml>
                       </documentation>
                     </variable>
+                    <variable name="fbMqttPublishTimer">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> 5-second telemetry publish heartbeat</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="sJsonPayload">
+                      <type>
+                        <string length="255" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Formatted JSON string for MQTT Broker</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="udiMessagesSent">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Counter for published JSON packets</xhtml>
+                      </documentation>
+                    </variable>
                   </localVars>
                   <localVars retain="true" persistent="true">
                     <variable name="udiTotalSeconds">
@@ -334,6 +375,7 @@ IF bResetUptime THEN
     bResetUptime    := FALSE;
 END_IF
 
+//--------------------------------------------------------------//
 
 // Master Start Command across completely different device types
 IF bStartAll THEN
@@ -364,6 +406,8 @@ FOR i := 1 TO 4 DO
     aActuators[i].CyclicUpdate();
 END_FOR
 
+//--------------------------------------------------------------//
+
 // --- Phase 3: Synchronize OOP Actuators to Fieldbus Process Data ---
 bECAT_MotorEnableOut   := fbConveyorMotor.IsRunning;
 iECAT_MotorVelocityOut := REAL_TO_INT(fbConveyorMotor.ActualSpeed);
@@ -376,7 +420,26 @@ IF bFieldbusFault THEN
     FOR i := 1 TO 4 DO
         aActuators[i].Stop();
     END_FOR
-END_IF</xhtml>
+END_IF
+
+//--------------------------------------------------------------//
+
+// --- Phase 4B: Build JSON Telemetry Payload Every 5 Seconds ---
+fbMqttPublishTimer(IN := NOT fbMqttPublishTimer.Q, PT := T#5S);
+
+IF fbMqttPublishTimer.Q THEN
+    sJsonPayload := CONCAT('{"uptime_min":', UDINT_TO_STRING(udiTotalMinutes));
+    sJsonPayload := CONCAT(sJsonPayload, ',"conveyor_rpm":');
+    sJsonPayload := CONCAT(sJsonPayload, REAL_TO_STRING(fbConveyorMotor.ActualSpeed));
+    sJsonPayload := CONCAT(sJsonPayload, ',"valve_open":');
+    sJsonPayload := CONCAT(sJsonPayload, BOOL_TO_STRING(fbMainValve.IsRunning));
+    sJsonPayload := CONCAT(sJsonPayload, ',"bus_fault":');
+    sJsonPayload := CONCAT(sJsonPayload, BOOL_TO_STRING(bFieldbusFault));
+    sJsonPayload := CONCAT(sJsonPayload, '}');
+
+    udiMessagesSent := udiMessagesSent + 1;
+END_IF
+</xhtml>
                   </ST>
                 </body>
                 <addData>
@@ -509,8 +572,7 @@ ResetFault := TRUE;
                         <interface />
                         <body>
                           <ST>
-                            <xhtml xmlns="http://www.w3.org/1999/xhtml">IsRunning := _bRunning;
-</xhtml>
+                            <xhtml xmlns="http://www.w3.org/1999/xhtml">IsRunning := _bRunning;</xhtml>
                           </ST>
                         </body>
                         <addData />
@@ -742,12 +804,27 @@ END_IF
                 <Library Name="#SM3_Transformation" Namespace="TRAFO" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="SM3_Transformation, 4.20.0.0 (CODESYS)" />
                 <Library Name="#SM3_Drive_ETC" Namespace="SM3_Drive_ETC" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="SM3_Drive_ETC, 4.19.0.0 (CODESYS)" />
                 <Library Name="#SM3_Drive_ETC_Beckhoff_EL70xx" Namespace="SM3_Drive_ETC_Beckhoff_EL70xx" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="SM3_Drive_ETC_Beckhoff_EL70xx, 4.19.0.0 (CODESYS)" />
+                <Library Name="#System_VisuElems" Namespace="VisuElems" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElems, 4.10.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemMeter" Namespace="VisuElemMeter" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemMeter, 4.10.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemsSpecialControls" Namespace="VisuElemsSpecialControls" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemsSpecialControls, 4.7.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemsWinControls" Namespace="VisuElemsWinControls" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemsWinControls, 4.10.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemTextEditor" Namespace="VisuElemTextEditor" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemTextEditor, 4.8.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemTrace" Namespace="VisuElemTrace" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemTrace, 4.10.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuNativeControl" Namespace="VisuNativeControl" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuNativeControl, 4.9.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemsAlarm" Namespace="VisuElemsAlarm" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemsAlarm, 4.10.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemCamDisplayer" Namespace="VisuElemCamDisplayer" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemCamDisplayer, 4.7.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElem3DPath" Namespace="VisuElem3DPath" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElem3DPath, 4.7.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemsDateTime" Namespace="VisuElemsDateTime" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemsDateTime, 4.9.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuElemXYChart" Namespace="VisuElemXYChart" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuElemXYChart, 4.10.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#System_VisuInputs" Namespace="VisuInputs" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="VisuInputs, 4.7.0.0 (System)" ResolverGuid="2717eb6a-dd07-4c66-8d8d-cacebd7b18ae" />
+                <Library Name="#IecVarAccess" Namespace="IecVarAccessLibrary" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="IecVarAccess, 3.3.1.20 (System)" />
                 <PlaceholderRedirections>
                   <PlaceholderRedirection Placeholder="Standard" Redirection="Standard, 3.5.22.0 (System)" />
-                  <PlaceholderRedirection Placeholder="StringUtils" Redirection="StringUtils, 3.5.22.0 (System)" />
                   <PlaceholderRedirection Placeholder="Standard64" Redirection="Standard64, 3.5.20.0 (System)" />
-                  <PlaceholderRedirection Placeholder="Collections" Redirection="Collections, 3.5.17.0 (System)" />
                   <PlaceholderRedirection Placeholder="Util" Redirection="Util, 3.5.22.0 (System)" />
+                  <PlaceholderRedirection Placeholder="StringUtils" Redirection="StringUtils, 3.5.22.0 (System)" />
+                  <PlaceholderRedirection Placeholder="VisuSymbols" Redirection="VisuSymbols, 4.5.0.0 (System)" />
+                  <PlaceholderRedirection Placeholder="Collections" Redirection="Collections, 3.5.17.0 (System)" />
                   <PlaceholderRedirection Placeholder="SM3_Drive_ETC_Beckhoff_EL70xx" Redirection="SM3_Drive_ETC_Beckhoff_EL70xx, 4.19.0.0 (CODESYS)" />
                 </PlaceholderRedirections>
                 <addData>
@@ -756,6 +833,11 @@ END_IF
                   </data>
                 </addData>
               </Libraries>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/buildproperties" handleUnknown="implementation">
+              <BuildProperties>
+                <CompilerDefines>GENERATE_OVERLAY_VISU,VISU_USEPROPERTYINFO</CompilerDefines>
+              </BuildProperties>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
               <ObjectId>75664f62-aabc-4709-9fa8-15f4ffab8d78</ObjectId>
@@ -7636,6 +7718,7 @@ END_IF
             <Object Name="EtherCAT_Task" ObjectId="832c13f2-6968-4760-8044-93bdef95bd89" />
             <Object Name="Profinet_IOTask" ObjectId="bf7ea121-4f9e-48a6-a787-2114427b306f" />
             <Object Name="Profinet_CommunicationTask" ObjectId="415adcd9-8c80-423b-9440-797d1768bb4f" />
+            <Object Name="VISU_TASK" ObjectId="b9fa7893-7ef9-4dc8-8c77-c2e179e61877" />
             <Object Name="I_Actuator" ObjectId="d8daac6d-e840-4e8f-9e74-d5cd847ebe58">
               <Object Name="Start" ObjectId="3e14f405-3bd3-44e7-a3b3-9191b79fd564" />
               <Object Name="Stop" ObjectId="886c9ddb-de11-41ee-ac4c-96f611c3b8d1" />

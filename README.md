@@ -29,10 +29,15 @@ Unlike kernel-coupled real-time environments, this sandbox utilizes a decoupled 
 * **Encapsulated Property Accessors:** Exposed read-only `IsRunning` and `ActualSpeed` properties on `FB_ActuatorBase` and `FB_Motor` to feed cyclic fieldbus frames without breaking OOP encapsulation.
 * **Fieldbus Fault Interlock:** Implemented a bus-health safety interlock (`bFieldbusFault`) that immediately commands a polymorphic emergency stop across all actuators upon simulated cable dropout.
 
+## ✅ Phase 4: WebVisu HMI & IT/OT Integration — OPC UA & JSON Telemetry (Completed)
+
+* **Interactive WebVisu Operator HMI:** Built a browser-based operator dashboard (`http://localhost:8080/webvisu.htm`) featuring momentary control pushbuttons (`START ALL`, `STOP ALL`, `RESET FAULTS`), a live conveyor speed gauge, status indicator lamps, and a persistent uptime readout.
+* **OPC UA Server Endpoint (`Port 4840`):** Configured a `Symbol Configuration` with OPC UA features enabled to expose polymorphic actuator states, control triggers, and fieldbus health diagnostics over `opc.tcp://localhost:4840`.
+* **IIoT JSON Telemetry Formatter:** Implemented a cyclic 5-second (`TON`) JSON payload serializer (`sJsonPayload`) in `PLC_PRG` that packages real-time uptime, motor velocity, valve position, and fault status into structured JSON strings ready for MQTT broker ingestion.
 
 ## 🚀 Roadmap
 * [x] **Phase 1:** Decoupled Runtime Setup & Persistent Memory Architecture
 * [x] **Phase 2:** Advanced IEC 61131-3 OOP (Interfaces, Polymorphism, `SUPER^` Inheritance)
 * [x] **Phase 3:** Virtual Fieldbus Topologies (EtherCAT & PROFINET)
-* [ ] **Phase 4:** WebVisu HMI & IT/OT Integration (OPC UA / MQTT JSON)
+* [x] **Phase 4:** WebVisu HMI & IT/OT Integration (OPC UA / MQTT JSON)
 * [ ] **Phase 5:** Containerized Linux Edge Deployment (Docker Control SL)
